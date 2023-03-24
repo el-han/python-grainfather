@@ -7,6 +7,7 @@ class GrainfatherStats:
     def __init__(self):
         self.log = logging.getLogger()
 
+        self.is_connected = False
         # X
         self.target_temperature = None
         self.current_temperature = None
@@ -31,6 +32,9 @@ class GrainfatherStats:
         self.is_recipe_interrupted = None
         self.manual_power_mode = None
         self.sparge_water_alert_displayed = None
+
+    def set_connected(self, is_connected):
+        self.is_connected = is_connected
 
     def update(self, state_str):
         kind = state_str[0]

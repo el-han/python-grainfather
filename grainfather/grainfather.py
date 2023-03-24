@@ -1,7 +1,8 @@
+import asyncio
 import re
 import logging
 
-from bleak import BleakScanner, BleakClient, BleakGATTCharacteristic
+from bleak import BleakScanner, BleakClient, BleakGATTCharacteristic, BleakError
 
 from .grainfather_recipe import GrainfatherRecipe
 from .grainfather_stats import GrainfatherStats
@@ -25,6 +26,8 @@ class Grainfather():
 
         self.update_stats_callback = None
 
+        self.stopevent = asyncio.Event()
+
     async def connect(self, address=None):
 
         if address is not None:
@@ -35,13 +38,19 @@ class Grainfather():
             address = await Grainfather.discover()
             self.log.info(f'Found Grainfather with address {address}')
 
-        self.client = BleakClient(address)
+        self.client = BleakClient(address, disconnected_callback=self.__disconnect_callback)
 
         await self.client.connect()
+        self.stats.set_connected(True)
+        self.log.info('Connected to grainfather')
 
     async def discover():
         device = await BleakScanner.find_device_by_name('Grain')
         return device.address
+
+    def __disconnect_callback(self, client: BleakClient):
+        self.stats.set_connected(False)
+        self.log.error('Connection to Grainfather lost.')
 
     def __callback(self, sender: BleakGATTCharacteristic, data: bytearray):
         self.read_data = self.read_data + data.decode()
@@ -72,6 +81,24 @@ class Grainfather():
         self.update_stats_callback = callback
 
         await self.client.start_notify(READ_CHAR_UUID, self.__callback)
+
+        while not self.stopevent.is_set():
+            if not self.client.is_connected:
+                # Reconnect
+                try:
+                    await self.client.connect()
+                    self.stats.set_connected(True)
+                    self.log.info('Connected to grainfather')
+                    await self.client.start_notify(READ_CHAR_UUID, self.__callback)
+                except BleakError:
+                    pass
+            await asyncio.sleep(0.001)
+
+        # self.client.stop_notify(READ_CHAR_UUID)
+        self.client.disconnect()
+
+    def stop(self):
+        self.stopevent.set()
 
     async def send_command(self, command: str):
         if self.client is None:
