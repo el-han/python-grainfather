@@ -4,7 +4,7 @@ version = "1.1.0"
 authors = [
   { name="Hannes Ellinger", email="hannes.ellinger@posteo.de" },
 ]
-description = "A small example package"
+description = "A Python library for controlling a Grainfather G30 via Bluetooth LE"
 readme = "README.md"
 requires-python = ">=3.7"
 classifiers = [
@@ -18,5 +18,5 @@ dependencies = [
 ]
 
 [project.urls]
-"Homepage" = "https://github.com/pypa/sampleproject"
-"Bug Tracker" = "https://github.com/pypa/sampleproject/issues"
+"Homepage" = "https://github.com/elli89/python-grainfather"
+"Bug Tracker" = "https://github.com/elli89/python-grainfather/issues"
