@@ -20,6 +20,7 @@ class GrainfatherRecipe():
         self.strike_temp_mode = 0
         self.boil_addition_stops = []
         self.mash_steps = []
+        # self.hops_steps = {}
 
     def from_beerxml(self, filename):
         # Open BeerXML file and convert to dict
@@ -36,7 +37,9 @@ class GrainfatherRecipe():
         # Mash steps
         for mash_step in beerxml_dict['MASH']['MASH_STEPS']['MASH_STEP']:
             self.mash_steps.append({'temperature': int(mash_step['STEP_TEMP']),
-                                    'time': int(mash_step['STEP_TIME'])})
+                                    'time': int(mash_step['STEP_TIME']),
+                                    'name': mash_step['NAME'],
+                                    'type': mash_step['TYPE']})
             try:
                 water_mash_step = float(mash_step['INFUSE_AMOUNT'])
                 water_mash_total += water_mash_step
