@@ -43,6 +43,8 @@ class Grainfather():
         await self.client.connect()
         self.stats.set_connected(True)
         self.log.info('Connected to grainfather')
+        if self.update_stats_callback is not None:
+            self.update_stats_callback(self.stats)
 
     async def discover():
         device = await BleakScanner.find_device_by_name('Grain')
@@ -51,6 +53,8 @@ class Grainfather():
     def __disconnect_callback(self, client: BleakClient):
         self.stats.set_connected(False)
         self.log.error('Connection to Grainfather lost.')
+        if self.update_stats_callback is not None:
+            self.update_stats_callback(self.stats)
 
     def __callback(self, sender: BleakGATTCharacteristic, data: bytearray):
         self.read_data = self.read_data + data.decode()
@@ -89,6 +93,8 @@ class Grainfather():
                     await self.client.connect()
                     self.stats.set_connected(True)
                     self.log.info('Connected to grainfather')
+                    if self.update_stats_callback is not None:
+                        self.update_stats_callback(self.stats)
                     await self.client.start_notify(READ_CHAR_UUID, self.__callback)
                 except BleakError:
                     pass
